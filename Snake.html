@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snake Game</title>
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:Arial,sans-serif;
+}
+
+body{
+  background:#050816;
+  color:white;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:20px;
+}
+
+h1{
+  margin:10px 0;
+  color:cyan;
+  font-size:42px;
+  text-align:center;
+}
+
+#score{
+  font-size:24px;
+  margin-bottom:16px;
+}
+
+canvas{
+  background:#111;
+  border:4px solid cyan;
+  border-radius:12px;
+  max-width:100%;
+  touch-action:none;
+}
+
+.controls{
+  display:grid;
+  grid-template-columns:70px 70px 70px;
+  gap:10px;
+  margin-top:20px;
+}
+
+button{
+  height:60px;
+  font-size:24px;
+  border:none;
+  border-radius:12px;
+  background:cyan;
+  color:#000;
+  font-weight:bold;
+}
+
+button:active{
+  transform:scale(0.95);
+}
+
+a{
+  margin-top:20px;
+  color:cyan;
+  text-decoration:none;
+  font-size:20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🐍 Snake Game</h1>
+<div id="score">Score: 0</div>
+
+<canvas id="game" width="300" height="300"></canvas>
+
+<div class="controls">
+  <div></div>
+  <button id="up">⬆</button>
+  <div></div>
+
+  <button id="left">⬅</button>
+  <button id="down">⬇</button>
+  <button id="right">➡</button>
+</div>
+
+<a href="../Neuroverse.html">⬅ Back to Home</a>
+
+<script>
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+const box = 15;
+const gridSize = 20; // 300 / 15 = 20
+
+let snake = [{ x: 150, y: 150 }];
+let dx = box;
+let dy = 0;
+let score = 0;
+
+let food = randomFood();
+let gameOver = false;
+
+function randomFood() {
+  let x, y;
+  do {
+    x = Math.floor(Math.random() * gridSize) * box;
+    y = Math.floor(Math.random() * gridSize) * box;
+  } while (snake.some(part => part.x === x && part.y === y));
+  return { x, y };
+}
+
+function drawSquare(x, y, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(x, y, box, box);
+}
+
+function draw() {
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  drawSquare(food.x, food.y, "red");
+
+  snake.forEach((part, index) => {
+    drawSquare(part.x, part.y, index === 0 ? "lime" : "#7CFC00");
+  });
+}
+
+function moveSnake() {
+  const head = {
+    x: snake[0].x + dx,
+    y: snake[0].y + dy
+  };
+
+  if (
+    head.x < 0 ||
+    head.y < 0 ||
+    head.x >= canvas.width ||
+    head.y >= canvas.height ||
+    snake.some(part => part.x === head.x && part.y === head.y)
+  ) {
+    gameOver = true;
+    setTimeout(() => {
+      alert("Game Over!\nScore: " + score);
+      location.reload();
+    }, 50);
+    return;
+  }
+
+  snake.unshift(head);
+
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    document.getElementById("score").textContent = "Score: " + score;
+    food = randomFood();
+  } else {
+    snake.pop();
+  }
+}
+
+function gameLoop() {
+  if (gameOver) return;
+  draw();
+  moveSnake();
+}
+
+setInterval(gameLoop, 150);
+
+// Keyboard controls
+document.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowUp" && dy === 0) {
+    dx = 0;
+    dy = -box;
+  } else if (e.key === "ArrowDown" && dy === 0) {
+    dx = 0;
+    dy = box;
+  } else if (e.key === "ArrowLeft" && dx === 0) {
+    dx = -box;
+    dy = 0;
+  } else if (e.key === "ArrowRight" && dx === 0) {
+    dx = box;
+    dy = 0;
+  }
+});
+
+// Mobile button controls
+document.getElementById("up").onclick = () => {
+  if (dy === 0) {
+    dx = 0;
+    dy = -box;
+  }
+};
+
+document.getElementById("down").onclick = () => {
+  if (dy === 0) {
+    dx = 0;
+    dy = box;
+  }
+};
+
+document.getElementById("left").onclick = () => {
+  if (dx === 0) {
+    dx = -box;
+    dy = 0;
+  }
+};
+
+document.getElementById("right").onclick = () => {
+  if (dx === 0) {
+    dx = box;
+    dy = 0;
+  }
+};
+
+// Swipe controls
+let startX = 0;
+let startY = 0;
+
+canvas.addEventListener("touchstart", (e) => {
+  const t = e.touches[0];
+  startX = t.clientX;
+  startY = t.clientY;
+});
+
+canvas.addEventListener("touchend", (e) => {
+  const t = e.changedTouches[0];
+  const diffX = t.clientX - startX;
+  const diffY = t.clientY - startY;
+
+  if (Math.abs(diffX) > Math.abs(diffY)) {
+    if (diffX > 0 && dx === 0) {
+      dx = box;
+      dy = 0;
+    } else if (diffX < 0 && dx === 0) {
+      dx = -box;
+      dy = 0;
+    }
+  } else {
+    if (diffY > 0 && dy === 0) {
+      dx = 0;
+      dy = box;
+    } else if (diffY < 0 && dy === 0) {
+      dx = 0;
+      dy = -box;
+    }
+  }
+});
+</script>
+
+</body>
+</html>

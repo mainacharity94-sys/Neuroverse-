@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Match</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#050816;
+color:white;
+display:flex;
+flex-direction:column;
+align-items:center;
+padding:20px;
+}
+
+h1{
+color:cyan;
+margin-bottom:15px;
+}
+
+#moves{
+font-size:22px;
+margin-bottom:20px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:repeat(4,80px);
+gap:12px;
+}
+
+.card{
+width:80px;
+height:80px;
+background:cyan;
+border-radius:12px;
+display:flex;
+justify-content:center;
+align-items:center;
+font-size:36px;
+cursor:pointer;
+user-select:none;
+}
+
+.card.flipped{
+background:white;
+}
+
+a{
+margin-top:25px;
+font-size:20px;
+color:cyan;
+text-decoration:none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🧠 Memory Match</h1>
+
+<div id="moves">Moves: 0</div>
+
+<div class="grid" id="grid"></div>
+
+<a href="../Neuroverse.html">⬅ Back to Home</a>
+
+<script>
+
+const emojis=[
+"🍎","🍎",
+"🐶","🐶",
+"🚗","🚗",
+"⚽","⚽",
+"🍕","🍕",
+"🎈","🎈",
+"🌟","🌟",
+"🎮","🎮"
+];
+
+emojis.sort(()=>Math.random()-0.5);
+
+const grid=document.getElementById("grid");
+
+let first=null;
+let second=null;
+let lock=false;
+let moves=0;
+let matched=0;
+
+emojis.forEach(emoji=>{
+
+const card=document.createElement("div");
+
+card.className="card";
+
+card.dataset.emoji=emoji;
+
+card.innerHTML="❓";
+
+card.onclick=function(){
+
+if(lock) return;
+
+if(card.classList.contains("flipped")) return;
+
+card.classList.add("flipped");
+
+card.innerHTML=emoji;
+
+if(first==null){
+
+first=card;
+
+}else{
+
+second=card;
+
+moves++;
+
+document.getElementById("moves").innerHTML="Moves: "+moves;
+
+lock=true;
+
+setTimeout(()=>{
+
+if(first.dataset.emoji===second.dataset.emoji){
+
+matched++;
+
+if(matched===8){
+
+setTimeout(()=>{
+
+alert("🎉 Congratulations! You matched every card!");
+
+},300);
+
+}
+
+}else{
+
+first.classList.remove("flipped");
+second.classList.remove("flipped");
+
+first.innerHTML="❓";
+second.innerHTML="❓";
+
+}
+
+first=null;
+second=null;
+lock=false;
+
+},700);
+
+}
+
+};
+
+grid.appendChild(card);
+
+});
+
+</script>
+
+</body>
+</html>
